@@ -8,6 +8,7 @@ var canvas_saver = require('./canvas_saver.js');
 var Canvas = require('canvas'),
         Image = Canvas.Image;
 
+var maximam = 217;
 fs.readFile(__dirname + '/A.png', function(err, data) {
         if (err) throw err;
 
@@ -56,7 +57,7 @@ function monochrome(basecolor) {
                         )
                 ) / (
                         Math.sqrt(Math.pow(255, 2) * 3)
-                ) * 255
+                ) * maximam
         )
         return { "r": mask, "g": mask, "b": mask }
 }
@@ -88,9 +89,9 @@ function getMonochrome(src) {
 }
 
 function getAlpha(t1, t2) {
-        return (t2 - t1 + 255);
+        return (t2 - t1 + maximam);
 }
 
 function getBaseColor(t2, a) {
-        return Math.floor(t2 / (a /255));
+        return Math.floor(t2 / (a /maximam));
 }
