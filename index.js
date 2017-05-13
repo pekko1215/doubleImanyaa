@@ -17,7 +17,7 @@ app.use(express.static('html'))
 app.use(multer({ dest: './tmp/' }).any())
 
 app.post('/', function(req, res, next) {
-        console.log(req.files);
+        // console.log(req.files);
         var filenames = [req.files[0].filename,req.files[1].filename]
         margeImage("/tmp/"+filenames[0],"/tmp/"+filenames[1],function(data){
             res.writeHead(200, {'Content-Type': 'image/png' });
@@ -68,7 +68,6 @@ function margeImage(dir1,dir2,callback) {
                                         imagedata1.data[index + 3] = alpha;
                                 }
                         }
-
                         ctx1.putImageData(imagedata1, 0, 0);
                         callback(canvas1.toDataURL())
                 })
@@ -93,12 +92,21 @@ function monochrome(basecolor) {
 function getMonochrome(src) {
         var img = new Image;
         img.src = src;
-        var canvas = new Canvas(img.width, img.height);
+        var maxsize = 720*480;
+        var imgsize = {width:img.width,height:img.height}
+        if(imgsize.width*imgsize.height>maxsize){
+            var hi = Math.sqrt(maxsize/(imgsize.width*imgsize.height));
+            imgsize.width = Math.floor(imgsize.width * hi);
+            imgsize.height = Math.floor(imgsize.height * hi);
+        }
+        console.log("before",{width:img.width,height:img.height})
+        console.log("after:",imgsize)
+        var canvas = new Canvas(imgsize.width, imgsize.height);
         var ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, img.width, img.height);
+        ctx.drawImage(img, 0, 0, img.width, img.height,0,0,imgsize.width,imgsize.height);
 
         // RGBの画素値の配列を取得
-        var imagedata = ctx.getImageData(0, 0, img.width, img.height);
+        var imagedata = ctx.getImageData(0, 0, img.width, imgsize.height);
         // console.log(imagedata.data[3]);
         // 画像加工(擬似モノクロ化)
         for (var y = 0; y < imagedata.height; y++) {
