@@ -1,15 +1,16 @@
 {
   "name": "doubleimagener",
   "version": "0.0.1",
-  "private":true,
+  "private": true,
   "scripts": {
     "start": "node index.js"
   },
-  "engine":{
-	"node":"v6.10.2",
-	"npm":"3.10.10"
+  "engine": {
+    "node": "v6.10.2",
+    "npm": "3.10.10"
   },
-  "dependencies":{
-	"canvas":"*"
+  "dependencies": {
+    "canvas": "*",
+    "express": "^4.15.2"
   }
 }

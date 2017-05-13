@@ -1,6 +1,6 @@
 // Node.js標準装備のファイルの読み書きするやつ
 var fs = require('fs');
-
+var express = require('express');
 // 別途用意した画像を保存してくれるやつ
 var canvas_saver = require('./canvas_saver.js');
 
@@ -9,6 +9,21 @@ var Canvas = require('canvas'),
         Image = Canvas.Image;
 
 var maximam = 217;
+
+var app = express();
+// app.use(express.logger());
+
+app.get('/', function(request, response) {
+  response.send('Hello World!');
+});
+
+var port = process.env.PORT || 5000;
+
+app.listen(port,function(){
+    console.log("Listening on "+port);
+})
+
+
 fs.readFile(__dirname + '/A.png', function(err, data) {
         if (err) throw err;
 
