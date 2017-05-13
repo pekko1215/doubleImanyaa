@@ -1,66 +1,74 @@
 // Node.js標準装備のファイルの読み書きするやつ
 var fs = require('fs');
 var express = require('express');
+var bodyParser = require('body-parser');
 // 別途用意した画像を保存してくれるやつ
 var canvas_saver = require('./canvas_saver.js');
-
+var multer = require('multer');
 // node-canvas
 var Canvas = require('canvas'),
         Image = Canvas.Image;
 
 var maximam = 217;
-
 var app = express();
 // app.use(express.logger());
 
-app.get('/', function(request, response) {
-  response.send('Hello World!');
-});
+app.use(express.static('html'))
+app.use(multer({ dest: './tmp/' }).any())
+
+app.post('/', function(req, res, next) {
+        console.log(req.files);
+        var filenames = [req.files[0].filename,req.files[1].filename]
+        margeImage("/tmp/"+filenames[0],"/tmp/"+filenames[1],function(data){
+            res.writeHead(200, {'Content-Type': 'image/png' });
+            res.write(data,'binary')
+            res.end()
+        })
+})
 
 var port = process.env.PORT || 5000;
 
-app.listen(port,function(){
-    console.log("Listening on "+port);
+app.listen(port, function() {
+        console.log("Listening on " + port);
 })
 
-
-fs.readFile(__dirname + '/A.png', function(err, data) {
-        if (err) throw err;
-
-        var canvas1 = getMonochrome(data);
-        fs.readFile(__dirname + '/B.png', function(err, data) {
-                // データを保存
+function margeImage(dir1,dir2,callback) {
+        fs.readFile(__dirname + dir1, function(err, data) {
                 if (err) throw err;
-                var canvas2 = getMonochrome(data);
 
-                var ctx1 = canvas1.getContext('2d');
-                var imagedata1 = ctx1.getImageData(0, 0, canvas1.width, canvas1.height)
+                var canvas1 = getMonochrome(data);
+                fs.readFile(__dirname + dir2, function(err, data) {
+                        // データを保存
+                        if (err) throw err;
+                        var canvas2 = getMonochrome(data);
 
-                var ctx2 = canvas2.getContext('2d');
-                var imagedata2 = ctx2.getImageData(0, 0, canvas2.width, canvas2.height)
+                        var ctx1 = canvas1.getContext('2d');
+                        var imagedata1 = ctx1.getImageData(0, 0, canvas1.width, canvas1.height)
 
-                for (var y = 0; y < imagedata1.height; y++) {
-                        for (var x = 0; x < imagedata1.width; x++) {
-                                var index = (y * imagedata1.width + x) * 4;
-                                if (imagedata1.data[index] < imagedata1.data[index]) {
-                                        imagedata1.data[index] = [imagedata2.data[index], imagedata2.data[index] = imagedata1.data[index]][0]
+                        var ctx2 = canvas2.getContext('2d');
+                        var imagedata2 = ctx2.getImageData(0, 0, canvas2.width, canvas2.height)
+
+                        for (var y = 0; y < imagedata1.height; y++) {
+                                for (var x = 0; x < imagedata1.width; x++) {
+                                        var index = (y * imagedata1.width + x) * 4;
+                                        if (imagedata1.data[index] < imagedata1.data[index]) {
+                                                imagedata1.data[index] = [imagedata2.data[index], imagedata2.data[index] = imagedata1.data[index]][0]
+                                        }
+                                        var alpha = getAlpha(imagedata1.data[index], imagedata2.data[index])
+                                        var base = getBaseColor(imagedata2.data[index], alpha);
+                                        // console.log(base)
+                                        imagedata1.data[index + 0] = base;
+                                        imagedata1.data[index + 1] = base;
+                                        imagedata1.data[index + 2] = base;
+                                        imagedata1.data[index + 3] = alpha;
                                 }
-                                var alpha = getAlpha(imagedata1.data[index], imagedata2.data[index])
-                                var base = getBaseColor(imagedata2.data[index], alpha);
-                                // console.log(base)
-                                imagedata1.data[index + 0] = base;
-                                imagedata1.data[index + 1] = base;
-                                imagedata1.data[index + 2] = base;
-                                imagedata1.data[index + 3] = alpha;
                         }
-                }
 
-                ctx1.putImageData(imagedata1, 0, 0);
-                canvas_saver.save(canvas1, "monochrome.png", function() {
-                        console.log("画像保存完了したよ!!");
-                });
-        })
-});
+                        ctx1.putImageData(imagedata1, 0, 0);
+                        callback(canvas1.toDataURL())
+                })
+        });
+}
 // monochrome = {"r","g","b"}
 function monochrome(basecolor) {
         var mask = Math.floor(
@@ -108,5 +116,9 @@ function getAlpha(t1, t2) {
 }
 
 function getBaseColor(t2, a) {
-        return Math.floor(t2 / (a /maximam));
+        return Math.floor(t2 / (a / maximam));
+}
+
+var canvas_to_base64 = function(canvas) {
+        return canvas.toDataURL().split(',')[1];
 }

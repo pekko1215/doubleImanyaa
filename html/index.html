@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+    <title>画像合成君</title>
+</head>
+
+<body>
+    <form name="files" enctype="multipart/form-data">
+        <div>
+            画像1
+            <input type="file" name="file1">
+            <br>
+            <div class="preview" ></div>
+            <br>
+        </div>
+        <div>
+            画像2
+            <input type="file" name="file2">
+            <br>
+            <div class="preview" ></div>
+            <br>
+        </div>
+        <input type="button" id="send" value="合成！">
+    </form>
+    結果<br>
+    <img id="ret">
+</body>
+
+</html>
