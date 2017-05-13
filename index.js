@@ -9,6 +9,7 @@ var multer = require('multer');
 var Canvas = require('canvas'),
         Image = Canvas.Image;
 
+var tcolor = { r: 204, g: 215, b: 221 }
 var maximam = 217;
 var app = express();
 // app.use(express.logger());
@@ -18,16 +19,16 @@ app.use(multer({ dest: './tmp/' }).any())
 
 app.post('/', function(req, res, next) {
         // console.log(req.files);
-        var filenames = [req.files[0].filename,req.files[1].filename]
-        margeImage("/tmp/"+filenames[0],"/tmp/"+filenames[1],function(data){
-            res.writeHead(200, {'Content-Type': 'image/png' });
-            res.write(data,'binary')
-            res.end()
-            fs.unlink("/tmp/" + filenames[0],function(err){
-                fs.unlink("/tmp/" + filenames[1],function(err){
+        var filenames = [req.files[0].filename, req.files[1].filename]
+        margeImage("/tmp/" + filenames[0], "/tmp/" + filenames[1], function(data) {
+                res.writeHead(200, { 'Content-Type': 'image/png' });
+                res.write(data, 'binary')
+                res.end()
+                fs.unlink("/tmp/" + filenames[0], function(err) {
+                        fs.unlink("/tmp/" + filenames[1], function(err) {
 
+                        })
                 })
-            })
         })
 })
 
@@ -37,7 +38,7 @@ app.listen(port, function() {
         console.log("Listening on " + port);
 })
 
-function margeImage(dir1,dir2,callback) {
+function margeImage(dir1, dir2, callback) {
         fs.readFile(__dirname + dir1, function(err, data) {
                 if (err) throw err;
 
@@ -75,45 +76,46 @@ function margeImage(dir1,dir2,callback) {
 }
 // monochrome = {"r","g","b"}
 function monochrome(basecolor) {
-        var mask = Math.floor(
-                (
-                        Math.sqrt(
-                                Math.pow(basecolor.r, 2) +
-                                Math.pow(basecolor.g, 2) +
-                                Math.pow(basecolor.b, 2)
-                        )
-                ) / (
-                        Math.sqrt(Math.pow(255, 2) * 3)
-                ) * maximam
-        )
-        return { "r": mask, "g": mask, "b": mask }
+        var color = { r: 0, g: 0, b: 0 }
+        for (var key in color) {
+                var mask = Math.floor(
+                        (
+                                Math.sqrt(
+                                        Math.pow(basecolor.r, 2) +
+                                        Math.pow(basecolor.g, 2) +
+                                        Math.pow(basecolor.b, 2)
+                                )
+                        ) / (
+                                Math.sqrt(Math.pow(255, 2) * 3)
+                        ) * tcolor[key]
+                )
+                color[key] = mask;
+        }
+        return color
 }
 
 function getMonochrome(src) {
         var img = new Image;
         img.src = src;
-        var maxsize = 720*480;
-        var imgsize = {width:img.width,height:img.height}
-        if(imgsize.width*imgsize.height>maxsize){
-            var hi = Math.sqrt(maxsize/(imgsize.width*imgsize.height));
-            imgsize.width = Math.floor(imgsize.width * hi);
-            imgsize.height = Math.floor(imgsize.height * hi);
+        var maxsize = 720 * 480;
+        var imgsize = { width: img.width, height: img.height }
+        if (imgsize.width * imgsize.height > maxsize) {
+                var hi = Math.sqrt(maxsize / (imgsize.width * imgsize.height));
+                imgsize.width = Math.floor(imgsize.width * hi);
+                imgsize.height = Math.floor(imgsize.height * hi);
         }
-        console.log("before",{width:img.width,height:img.height})
-        console.log("after:",imgsize)
+        console.log("before", { width: img.width, height: img.height })
+        console.log("after:", imgsize)
         var canvas = new Canvas(imgsize.width, imgsize.height);
         var ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, img.width, img.height,0,0,imgsize.width,imgsize.height);
+        ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, imgsize.width, imgsize.height);
 
         // RGBの画素値の配列を取得
         var imagedata = ctx.getImageData(0, 0, img.width, imgsize.height);
-        // console.log(imagedata.data[3]);
-        // 画像加工(擬似モノクロ化)
         for (var y = 0; y < imagedata.height; y++) {
                 for (var x = 0; x < imagedata.width; x++) {
                         var index = (y * imagedata.width + x) * 4;
                         var mono = monochrome({ "r": imagedata.data[index + 0], "g": imagedata.data[index + 1], "b": imagedata.data[index + 2] })
-                                // imagedata.data[index + 3] = Math.floor(y / imagedata.height * 256); // alpha
                         imagedata.data[index + 0] = mono.r; // G
                         imagedata.data[index + 1] = mono.g; // G
                         imagedata.data[index + 2] = mono.b; // B
