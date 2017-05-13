@@ -23,8 +23,11 @@ app.post('/', function(req, res, next) {
             res.writeHead(200, {'Content-Type': 'image/png' });
             res.write(data,'binary')
             res.end()
-            fs.unlink(__dirname + filenames[0])
-            fs.unlink(__dirname + filenames[1])
+            fs.unlink("/tmp/" + filenames[0],function(err){
+                fs.unlink("/tmp/" + filenames[1],function(err){
+
+                })
+            })
         })
 })
 
