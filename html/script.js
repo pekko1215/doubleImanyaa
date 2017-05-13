@@ -60,6 +60,7 @@ $(function() {
                                 form.append("A", files[0], "A.png")
                                 form.append("B", files[1], "B.png")
                                 console.log(form)
+                                $('#send').disabled(true)
                                 $.ajax({
                                         url: '/',
                                         type: 'POST',
@@ -69,6 +70,7 @@ $(function() {
                                         processData: false,
                                         success: function(data, textStatus, jqXHR) {
                                                 $('#ret').attr({ src: data });
+                                                $('#send').disabled(false)
                                         }
                                 })
                         }
